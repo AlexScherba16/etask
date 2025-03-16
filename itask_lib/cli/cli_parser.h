@@ -6,6 +6,7 @@
 namespace itask::cli_parser
 {
     /**
+     * @class CliParser
      * @brief Command-line arguments parser.
      *
      * This class is responsible for parsing command-line arguments
@@ -50,6 +51,5 @@ namespace itask::cli_parser
         std::string appDescription_;
     };
 }
-
 
 #endif //CLI_PARSER_H
