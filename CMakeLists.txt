@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(cxxopts REQUIRED)
 find_package(GTest REQUIRED)
+find_package(nlohmann_json REQUIRED)
 
 add_subdirectory(itask_lib)
 add_subdirectory(test)

@@ -1,5 +1,5 @@
-#ifndef TYPES_H
-#define TYPES_H
+#ifndef CLI_ARGS_H
+#define CLI_ARGS_H
 
 #include <string>
 
@@ -18,4 +18,4 @@ namespace itask::utils::types
     };
 }
 
-#endif //TYPES_H
+#endif //CLI_ARGS_H
