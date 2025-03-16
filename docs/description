@@ -1,0 +1,18 @@
+Scope of task: 
+As input you have a mongodb dump in JSON format of quotes [0] of a currencypair (EURAUD). 
+The program you develop should read in the file and 
+calculate the maximum, minimum of ask and bid quote, 
+as well as the average and median for every 30 minutes of the whole timeframe. 
+Please include the volume (quantity of the quote) as well.
+
+The following fields are relevant: 
+time                        timestamp in unix time format
+bid, ask                    the quote, has to be divided by 1 000 000 
+bidVolume, aksVolume        volume of the respective quote, has to be divided by 1 000
+
+Output to console or file. >= C++11, you can choose which libraries to use 
+
+At the end please send the documented source code to us. Let us know if you have any questions. 
+
+[0] http://www.investopedia.com/university/forexmarket/forex2.asp 
+
