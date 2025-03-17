@@ -30,6 +30,8 @@ namespace itask::mapper
         Mapper(const Mapper&) = delete;
         Mapper& operator=(const Mapper&) = delete;
 
+        ~Mapper() = default;
+
         /**
          * @brief Constructs a Mapper instance.
          *

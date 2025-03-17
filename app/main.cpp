@@ -5,6 +5,7 @@
 #include "mapper/mapper.h"
 
 constexpr uint64_t THIRTY_MIN_IN_NANO_SECONDS{1'800'000'000'000};
+constexpr uint64_t MAPPER_CHANNEL_CAPACITY{2048};
 
 int main(int argc, char** argv)
 {
@@ -26,11 +27,10 @@ int main(int argc, char** argv)
         QuoteChannelsMap quotesChannelsMap;
         {
             const auto timeMetadata{preprocData.timeIntervalSet.timeIntervalMetadata};
-            const auto channelCapacity{2048};
             quotesChannelsMap.reserve(timeMetadata.intervalsValue);
             for (uint32_t i = 0; i < timeMetadata.intervalsValue; ++i)
             {
-                quotesChannelsMap.emplace_back(QuoteChannel{channelCapacity});
+                quotesChannelsMap.emplace_back(QuoteChannel{MAPPER_CHANNEL_CAPACITY});
             }
         }
 
