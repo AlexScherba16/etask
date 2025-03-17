@@ -13,7 +13,7 @@ using namespace nlohmann;
 namespace itask::preprocessor
 {
     Preprocessor::Preprocessor(std::string filePath, const uint16_t threadCount, const uint64_t intervalRangeNanoSec) :
-        filePath_(std::move(filePath)), threadCount_(threadCount), intervalRangeNanoSec_(intervalRangeNanoSec)
+        filePath_(std::move(filePath)), threadCount_(threadCount), intervalRangeNs_(intervalRangeNanoSec)
     {
         if (filePath_.empty())
         {
@@ -25,7 +25,7 @@ namespace itask::preprocessor
             throw std::invalid_argument("Thread count must be positive");
         }
 
-        if (intervalRangeNanoSec_ == 0)
+        if (intervalRangeNs_ == 0)
         {
             throw std::invalid_argument("Interval range must be positive");
         }
@@ -40,19 +40,18 @@ namespace itask::preprocessor
     PreprocessedData Preprocessor::getPreprocessedData()
     {
         std::ifstream preprocFile(filePath_);
-        Defer deferClose(std::move([&preprocFile](){preprocFile.close();}));
-
         if (!preprocFile.is_open())
         {
             throw std::runtime_error("Could not open preprocessing file: " + filePath_);
         }
+        Defer deferClose(std::move([&preprocFile](){preprocFile.close();}));
 
-        auto timeIntervals{getTimeIntervals_(preprocFile)};
+        auto timeIntervals{getTimeIntervalSet_(preprocFile)};
         auto fileSegments{getFileSegments_(preprocFile)};
         return PreprocessedData{std::move(fileSegments), std::move(timeIntervals)};
     }
 
-    std::vector<TimeInterval> Preprocessor::getTimeIntervals_(std::ifstream& file) const
+    TimeIntervalSet Preprocessor::getTimeIntervalSet_(std::ifstream& file) const
     {
         file.seekg(0, std::ios::beg);
 
@@ -94,26 +93,27 @@ namespace itask::preprocessor
         // timestamps was stored, ready to parse intervals.
         // calculate value of intervals
         uint64_t totalDuration{lastTimestamp - firstTimestamp};
-        uint64_t intervalsValue{totalDuration / intervalRangeNanoSec_};
+        uint64_t intervalsValue{totalDuration / intervalRangeNs_};
 
         // check remaining fraction of interval.
-        if (totalDuration % intervalRangeNanoSec_)
+        if (totalDuration % intervalRangeNs_)
         {
             // we add one more interval to ensure all data is covered.
             intervalsValue++;
         }
 
         // almost done, let's collect intervals collection
-        std::vector<TimeInterval> intervals;
+        std::vector<Interval> intervals;
         intervals.reserve(intervalsValue);
         for (int i = 0; i < intervalsValue; ++i)
         {
-            uint64_t startPoint{firstTimestamp + i * intervalRangeNanoSec_};
-            uint64_t endPoint{startPoint + intervalRangeNanoSec_};
-            TimeInterval tmp{startPoint, endPoint};
+            uint64_t startPoint{firstTimestamp + i * intervalRangeNs_};
+            uint64_t endPoint{startPoint + intervalRangeNs_};
+            Interval tmp{startPoint, endPoint};
             intervals.emplace_back(std::move(tmp));
         }
-        return intervals;
+
+        return {std::move(intervals), totalDuration, intervalRangeNs_};
     }
 
     std::vector<FileSegment> Preprocessor::getFileSegments_(std::ifstream& file) const

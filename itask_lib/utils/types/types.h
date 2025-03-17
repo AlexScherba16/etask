@@ -4,6 +4,8 @@
 #include <queue>
 #include <vector>
 
+#include <concurrentqueue.h>
+
 namespace itask::utils::types
 {
     /**
@@ -33,20 +35,34 @@ namespace itask::utils::types
     };
 
     /**
-     * @struct TimeInterval
+     * @struct Interval
      * @brief Represents a time interval.
      *
      * A time interval defines a range of timestamps that are used
      * to categorize records into specific time-based partitions.
      */
-    struct TimeInterval
+    struct Interval
     {
-        uint64_t startTimestamp;
-        uint64_t endTimestamp;
+        uint64_t startTimestampNs;
+        uint64_t endTimestampNs;
     };
 
     /**
-     *@struct PreprocessedData
+     * @struct TimeIntervalSet
+     * @brief Represents a collection of time intervals with total duration and interval range in nanoseconds.
+     *
+     * This structure stores multiple time intervals and calculates
+     * the total duration of all intervals combined.
+     */
+    struct TimeIntervalSet
+    {
+        std::vector<Interval> timeIntervals;
+        uint64_t totalDurationNs{0};
+        uint64_t intervalRangeNs{0};
+    };
+
+    /**
+     * @struct PreprocessedData
      * @brief Stores preprocessed data for file segmentation and time-based intervals.
      *
      * This structure holds the result of preprocessing, including file partitions
@@ -55,7 +71,7 @@ namespace itask::utils::types
     struct PreprocessedData
     {
         std::vector<FileSegment> fileSegments;
-        std::vector<TimeInterval> timeIntervals;
+        TimeIntervalSet timeIntervalSet;
     };
 
     /**
@@ -78,6 +94,12 @@ namespace itask::utils::types
         double bidVolume{0};
         double askVolume{0};
 
+        /**
+         * @brief
+         *
+         * Well, in honor of general code documentation.
+         * However, I guess nobody will read this to clarify what actually operator== is doing, lol.
+         */
         bool operator==(const Quote& o) const
         {
             return timeNs == o.timeNs &&
@@ -86,7 +108,35 @@ namespace itask::utils::types
                 bidVolume == o.bidVolume &&
                 askVolume == o.askVolume;
         }
+
+        /**
+         * @brief
+         *
+         * Same as above.
+         */
+        bool operator<(const Quote& o) const
+        {
+            return timeNs < o.timeNs && bid < o.bid && ask < o.ask && bidVolume < o.bidVolume;
+        }
     };
+
+    /**
+     * @brief A thread-safe queue for transmitting Quote data.
+     *
+     * This queue allows safe communication between producer and consumer threads
+     * using `std::optional<Quote>`, where `std::nullopt` is using to send
+     * end-of-stream signal, similar to Golang empty struct transition.
+     */
+    using QuoteChannel = moodycamel::ConcurrentQueue<std::optional<Quote>>;
+
+    /**
+     * @brief A collection of quote channels for parallel data processing.
+     *
+     * This structure represents multiple independent `QuoteChannel` instances,
+     * using to send Quote messages across different consumers.
+     * vector is chosen to avoid hash calculations like in classical mapping containers.
+     */
+    using QuoteChannelsMap = std::vector<QuoteChannel>;
 
 }
 

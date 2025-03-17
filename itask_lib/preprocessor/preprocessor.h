@@ -61,21 +61,22 @@ namespace itask::preprocessor
     private:
         std::string filePath_{};
         uint16_t threadCount_{0};
-        uint64_t intervalRangeNanoSec_{0};
+        uint64_t intervalRangeNs_{0};
         uint64_t fileSize_{0};
 
         /**
          * @brief Parses time intervals from the given file stream.
          *
          * This method reads and extracts first and last timestamp from the provided input file stream.
-         * It processes the file content to generate a collection of time intervals.
+         * It processes the file content to generate a collection of time intervals,
+         * total duration and requred interval range.
          *
          * @param file Input file stream to read time intervals from.
-         * @return A vector of parsed time intervals.
+         * @return Parsed intervals collection with total duration and requred interval range.
          *
          * @throws If the file cannot be read or the parsing fails.
          */
-        std::vector<TimeInterval> getTimeIntervals_(std::ifstream& file) const;
+        TimeIntervalSet getTimeIntervalSet_(std::ifstream& file) const;
 
         /**
          * @brief Parses file segments from the given file stream.

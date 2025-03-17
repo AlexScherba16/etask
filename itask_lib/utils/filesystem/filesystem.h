@@ -46,6 +46,8 @@ namespace itask::util::filesystem
                 outFile_ << nlohmann::json::parse(jsonString).dump() << "\n";
             }
             outFile_.close();
+
+            fileSize_= std::filesystem::file_size(path_);
         }
 
         /**
@@ -55,6 +57,15 @@ namespace itask::util::filesystem
         const std::string& path() const
         {
             return path_;
+        }
+
+        /**
+         * @brief Returns size of the temporary file.
+         * @return file size.
+         */
+        size_t size() const
+        {
+            return fileSize_;
         }
 
         /**
@@ -68,6 +79,7 @@ namespace itask::util::filesystem
     private:
         std::string path_;
         std::ofstream outFile_;
+        uint64_t fileSize_{0};
     };
 
     /**
