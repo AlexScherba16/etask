@@ -2,6 +2,8 @@
 #include "utils/misc/misc.h"
 
 #include <nlohmann/json.hpp>
+#include <filesystem>
+#include <sstream>
 #include <fstream>
 
 using namespace itask::utils::types;
@@ -26,6 +28,12 @@ namespace itask::preprocessor
         if (intervalRangeNanoSec_ == 0)
         {
             throw std::invalid_argument("Interval range must be positive");
+        }
+
+        fileSize_ = std::filesystem::file_size(filePath_);
+        if (fileSize_ == 0)
+        {
+            throw std::invalid_argument("File size must be positive");
         }
     }
 
@@ -110,10 +118,14 @@ namespace itask::preprocessor
 
     std::vector<FileSegment> Preprocessor::getFileSegments_(std::ifstream& file) const
     {
-        // set read pointer to end of file and store file size
-        file.seekg(0, std::ios::end);
-        size_t fileSize = file.tellg();
-        size_t chunkSize = fileSize / threadCount_;
+        size_t chunkSize = fileSize_ / threadCount_;
+        if (chunkSize == 0)
+        {
+            std::stringstream ss;
+            ss << "Chunk size must be positive, file size : " << fileSize_ << " threads : " << threadCount_
+            << ", please reduce threads value";
+            throw std::runtime_error(std::move(ss.str()));
+        }
 
         std::vector<FileSegment> fileSegments;
         fileSegments.reserve(threadCount_);
@@ -121,23 +133,23 @@ namespace itask::preprocessor
         for (int i = 0; i < threadCount_; ++i)
         {
             size_t startOffset = i * chunkSize;
-            size_t endOffset = (i == threadCount_ - 1) ? fileSize : (startOffset + chunkSize);
+            size_t endOffset = (i == threadCount_ - 1) ? fileSize_ : (startOffset + chunkSize);
 
             // move startOffset forward until reach '\n'
             if (startOffset > 0)
             {
-                file.seekg(startOffset);
+                file.seekg(startOffset, std::ios::beg);
                 char c;
-                while (file.get(c) && c != '\n' && file.tellg() < fileSize);
+                while (file.get(c) && c != '\n' && file.tellg() < fileSize_);
                 startOffset = file.tellg();
             }
 
             // move endOffset forward until reach '\n'
-            if (endOffset < fileSize)
+            if (endOffset < fileSize_)
             {
-                file.seekg(endOffset);
+                file.seekg(endOffset, std::ios::beg);
                 char c;
-                while (file.get(c) && c != '\n' && file.tellg() < fileSize);
+                while (file.get(c) && c != '\n' && file.tellg() < fileSize_);
                 endOffset = file.tellg();
             }
 

@@ -1,11 +1,12 @@
 #include "preprocessor/preprocessor.h"
 #include "utils/filesystem/filesystem.h"
 
+#include <filesystem>
 #include <gtest/gtest.h>
 
 using namespace testing;
 using namespace itask::preprocessor;
-using namespace etask::util::filesystem;
+using namespace itask::util::filesystem;
 
 TEST(PreprocessorTest, CreatePreprocessor_EmptyPath_ThrowsException)
 {
@@ -22,10 +23,15 @@ TEST(PreprocessorTest, CreatePreprocessor_CreateZeroIntervalRange_ThrowsExceptio
     ASSERT_THROW(Preprocessor ("something",1337,0), std::invalid_argument);
 }
 
-TEST(PreprocessorTest, PerformPreprocessing_InvalidFilePath_ThrowsException)
+TEST(PreprocessorTest, CreatePreprocessing_InvalidFilePath_ThrowsException)
 {
-    Preprocessor p("something", 1337, 1337);
-    ASSERT_THROW(p.getPreprocessedData(), std::runtime_error);
+    ASSERT_THROW(Preprocessor("something", 1337, 1337), std::filesystem::filesystem_error);
+}
+
+TEST(PreprocessorTest, CreatePreprocessing_EmptyFile_ThrowsException)
+{
+    TmpEmptyFile tmp{};
+    ASSERT_THROW(Preprocessor(tmp.path(), 1337, 1337), std::invalid_argument);
 }
 
 TEST(PreprocessorTest, PerformPreprocessing_InvalidJsonFile_ThrowsException)
@@ -44,6 +50,19 @@ TEST(PreprocessorTest, PerformPreprocessing_InvalidJsonFile_ThrowsException)
     }
 }
 
+TEST(PreprocessorTest, PerformPreprocessing_ZeroChunkSize_ThrowsException)
+{
+    std::vector<std::string> validJsonContent{
+        R"({"time":{"$numberLong":"10"},"bid":{"$numberInt":"1000000"},"ask":{"$numberInt":"1000000"},"bidVolume":{"$numberInt":"1000000"},"askVolume":{"$numberInt":"1000000"}})",
+        R"({"time":{"$numberLong":"20"},"bid":{"$numberInt":"2000000"},"ask":{"$numberInt":"2000000"},"bidVolume":{"$numberInt":"2000000"},"askVolume":{"$numberInt":"2000000"}})",
+        R"({"time":{"$numberLong":"30"},"bid":{"$numberInt":"3000000"},"ask":{"$numberInt":"3000000"},"bidVolume":{"$numberInt":"3000000"},"askVolume":{"$numberInt":"3000000"}})",
+    };
+
+    TmpJsonFile tmp{validJsonContent};
+    Preprocessor p(tmp.path(), 1337, 15);
+    ASSERT_THROW(p.getPreprocessedData(), std::runtime_error);
+}
+
 TEST(PreprocessorTest, PerformPreprocessing_ValidJsonFile_GenarateValidPreprocessingData)
 {
     std::vector<std::string> validJsonContent{
@@ -56,6 +75,6 @@ TEST(PreprocessorTest, PerformPreprocessing_ValidJsonFile_GenarateValidPreproces
     };
 
     TmpJsonFile tmp{validJsonContent};
-    Preprocessor p(tmp.path(), 1337, 15);
+    Preprocessor p(tmp.path(), 2, 15);
     ASSERT_NO_THROW(p.getPreprocessedData());
 }

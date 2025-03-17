@@ -1,7 +1,7 @@
 #ifndef PREPROCESSOR_H
 #define PREPROCESSOR_H
 
-#include "utils/types/preprocessor.h"
+#include "utils/types/types.h"
 
 #include<string>
 
@@ -42,7 +42,7 @@ namespace itask::preprocessor
          *        This defines the time range for which records will be grouped and processed together,
          *        Each record will belong to a specific interval based on its timestamp.
          *
-         * @throws If the provided file path is empty or thread count is zero.
+         * @throws If the provided file path is empty, file is invalid, thread count or intervalRange is zero.
          */
         Preprocessor(std::string filePath, const uint16_t threadCount, const uint64_t intervalRangeNanoSec);
 
@@ -62,6 +62,7 @@ namespace itask::preprocessor
         std::string filePath_{};
         uint16_t threadCount_{0};
         uint64_t intervalRangeNanoSec_{0};
+        uint64_t fileSize_{0};
 
         /**
          * @brief Parses time intervals from the given file stream.
