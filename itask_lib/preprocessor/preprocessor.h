@@ -13,9 +13,8 @@ namespace itask::preprocessor
      * @class Preprocessor
      * @brief Prepares file partitions and time intervals for processing.
      *
-     * The Preprocessor class is responsible for reading an input file,
-     * partitioning it into segments for further multithreaded processing, and
-     * defining time intervals for data unique classification.
+     * The Preprocessor class is responsible for reading an input file, preparing partitions segments,
+     * for further multithreaded processing, and defining time intervals for data unique classification.
      */
     class Preprocessor
     {
@@ -30,10 +29,6 @@ namespace itask::preprocessor
 
         /**
          * @brief Constructs a Preprocessor instance.
-         *
-         * This class is responsible for preparing partitions for further parsing.
-         * It splits the input file into multiple partitions for the specified number of threads.
-         * And defines time intervals range to map records by specific interval id.
          *
          * @param filePath Path to the input file.
          * @param threadCount Number of threads for processing.
@@ -50,7 +45,7 @@ namespace itask::preprocessor
          * @brief Retrieves preprocessed data from a file.
          *
          * Reads a file and parses its contents to generate preprocessed data,
-         * including file segments and time intervals.
+         * including file segments and time intervals set.
          *
          * @return Preprocessed data containing file segments and time intervals.
          *
@@ -61,7 +56,7 @@ namespace itask::preprocessor
     private:
         std::string filePath_{};
         uint16_t threadCount_{0};
-        uint64_t intervalRangeNs_{0};
+        uint64_t intervalLengthNs_{0};
         uint64_t fileSize_{0};
 
         /**
@@ -69,10 +64,11 @@ namespace itask::preprocessor
          *
          * This method reads and extracts first and last timestamp from the provided input file stream.
          * It processes the file content to generate a collection of time intervals,
-         * total duration and requred interval range.
+         * total duration and required interval range.
          *
          * @param file Input file stream to read time intervals from.
-         * @return Parsed intervals collection with total duration and requred interval range.
+         * @return Parsed intervals collection with total duration, global timestamps
+         * and required specified interval length.
          *
          * @throws If the file cannot be read or the parsing fails.
          */

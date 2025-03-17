@@ -13,7 +13,7 @@ using namespace nlohmann;
 namespace itask::preprocessor
 {
     Preprocessor::Preprocessor(std::string filePath, const uint16_t threadCount, const uint64_t intervalRangeNanoSec) :
-        filePath_(std::move(filePath)), threadCount_(threadCount), intervalRangeNs_(intervalRangeNanoSec)
+        filePath_(std::move(filePath)), threadCount_(threadCount), intervalLengthNs_(intervalRangeNanoSec)
     {
         if (filePath_.empty())
         {
@@ -25,7 +25,7 @@ namespace itask::preprocessor
             throw std::invalid_argument("Thread count must be positive");
         }
 
-        if (intervalRangeNs_ == 0)
+        if (intervalLengthNs_ == 0)
         {
             throw std::invalid_argument("Interval range must be positive");
         }
@@ -93,27 +93,34 @@ namespace itask::preprocessor
         // timestamps was stored, ready to parse intervals.
         // calculate value of intervals
         uint64_t totalDuration{lastTimestamp - firstTimestamp};
-        uint64_t intervalsValue{totalDuration / intervalRangeNs_};
+        uint64_t intervalsValue{totalDuration / intervalLengthNs_};
 
         // check remaining fraction of interval.
-        if (totalDuration % intervalRangeNs_)
+        if (totalDuration % intervalLengthNs_)
         {
             // we add one more interval to ensure all data is covered.
             intervalsValue++;
         }
 
         // almost done, let's collect intervals collection
-        std::vector<Interval> intervals;
+        std::vector<TimeInterval> intervals;
         intervals.reserve(intervalsValue);
         for (int i = 0; i < intervalsValue; ++i)
         {
-            uint64_t startPoint{firstTimestamp + i * intervalRangeNs_};
-            uint64_t endPoint{startPoint + intervalRangeNs_};
-            Interval tmp{startPoint, endPoint};
+            uint64_t startPoint{firstTimestamp + i * intervalLengthNs_};
+            uint64_t endPoint{startPoint + intervalLengthNs_};
+            TimeInterval tmp{startPoint, endPoint};
             intervals.emplace_back(std::move(tmp));
         }
 
-        return {std::move(intervals), totalDuration, intervalRangeNs_};
+        // collect metadata
+        TimeIntervalMetadata metadata;
+        metadata.intervalsValue = intervalsValue;
+        metadata.globalStartTimestampNs = firstTimestamp;
+        metadata.globalEndTimestampNs = lastTimestamp;
+        metadata.intervalLengthNs = intervalLengthNs_;
+
+        return {std::move(intervals), std::move(metadata)};
     }
 
     std::vector<FileSegment> Preprocessor::getFileSegments_(std::ifstream& file) const

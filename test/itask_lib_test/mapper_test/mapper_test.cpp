@@ -104,8 +104,8 @@ TEST(MapperTest, PerformMapping_InvalidJsonFile_NoThrowException)
     for (const auto& jsonData : invalidJsonContent)
     {
         TmpJsonFile tmp{jsonData};
+        TimeIntervalSet timeSet{{}, {0, 0, 0, 1}};
 
-        TimeIntervalSet timeSet{{}, 0, 1337};
         QuoteChannelsMap quotesChannelsMap{};
         quotesChannelsMap.emplace_back(QuoteChannel{});
         std::latch latch{0};
@@ -117,14 +117,15 @@ TEST(MapperTest, PerformMapping_InvalidJsonFile_NoThrowException)
 TEST(MapperTest, PerformMapping_ValidJsonFile_SPSC_Stream_SingleInterval)
 {
     TmpJsonFile tmp{GLOBAL_VALID_JSON_DATA};
+    auto preprocData{Preprocessor{tmp.path(), 1, 10}.getPreprocessedData()};
+
     std::vector<Quote> actualQuotes;
     actualQuotes.reserve(GLOBAL_VALID_JSON_DATA.size());
 
-    TimeIntervalSet timeSet{{}, 0, 10};
     QuoteChannelsMap quotesChannelsMap{};
     quotesChannelsMap.emplace_back(QuoteChannel{});
     std::latch latch{1};
-    Mapper m(tmp.path(), std::move(FileSegment{0, tmp.size()}), timeSet, quotesChannelsMap, latch);
+    Mapper m(tmp.path(), std::move(FileSegment{0, tmp.size()}), preprocData.timeIntervalSet, quotesChannelsMap, latch);
 
     std::jthread producer{std::move(m)};
     std::jthread consumer = std::jthread([&]()
@@ -153,6 +154,8 @@ TEST(MapperTest, PerformMapping_ValidJsonFile_SPSC_Stream_SingleInterval)
 TEST(MapperTest, PerformMapping_ValidJsonFile_SPMC_Stream_TwoIntervals)
 {
     TmpJsonFile tmp{GLOBAL_VALID_JSON_DATA};
+    auto preprocData{Preprocessor{tmp.path(), 1, 3}.getPreprocessedData()};
+
     std::vector<Quote> expectedQuotes_interval_0{
         {1, 1, 1, 1, 1},
         {2, 2, 2, 2, 2},
@@ -170,13 +173,12 @@ TEST(MapperTest, PerformMapping_ValidJsonFile_SPMC_Stream_TwoIntervals)
     std::vector<Quote> actualQuotes_interval_1;
     actualQuotes_interval_1.reserve(expectedQuotes_interval_1.size());
 
-    TimeIntervalSet timeSet{{}, 0, 4};
     QuoteChannelsMap quotesChannelsMap{};
     quotesChannelsMap.emplace_back(QuoteChannel{});
     quotesChannelsMap.emplace_back(QuoteChannel{});
 
     std::latch latch{1};
-    Mapper m(tmp.path(), std::move(FileSegment{0, tmp.size()}), timeSet, quotesChannelsMap, latch);
+    Mapper m(tmp.path(), std::move(FileSegment{0, tmp.size()}), preprocData.timeIntervalSet, quotesChannelsMap, latch);
 
     auto consumerJob = [&quotesChannelsMap](int channelIndex, std::vector<Quote>& storage)
     {
@@ -263,7 +265,7 @@ TEST(MapperTest, PerformMapping_ValidJsonFile_MPSC_Stream_SinsleInterval)
 TEST(MapperTest, PerformMapping_ValidJsonFile_MPMC_Stream_TwoIntervals)
 {
     TmpJsonFile tmp{GLOBAL_VALID_JSON_DATA};
-    auto preprocData{Preprocessor{tmp.path(), 2, 4}.getPreprocessedData()};
+    auto preprocData{Preprocessor{tmp.path(), 2, 3}.getPreprocessedData()};
 
     std::vector<Quote> expectedQuotes_interval_0{
         {1, 1, 1, 1, 1},

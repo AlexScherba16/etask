@@ -21,13 +21,13 @@ namespace itask::utils::types
     };
 
     /**
- * @struct FileSegment
- * @brief Represents a segment of a file.
- *
- * A file segment defines a specific byte range within a file,
- * Expected to use for partitioning the file into smaller chunks
- * for parallel processing.
- */
+     * @struct FileSegment
+     * @brief Represents a segment of a file.
+     *
+     * A file segment defines a specific byte range within a file,
+     * Expected to use for partitioning the file into smaller chunks
+     * for parallel processing.
+     */
     struct FileSegment
     {
         size_t startOffset{0};
@@ -35,30 +35,46 @@ namespace itask::utils::types
     };
 
     /**
-     * @struct Interval
+     * @struct TimeInterval
      * @brief Represents a time interval.
      *
      * A time interval defines a range of timestamps that are used
      * to categorize records into specific time-based partitions.
      */
-    struct Interval
+    struct TimeInterval
     {
         uint64_t startTimestampNs;
         uint64_t endTimestampNs;
     };
 
     /**
-     * @struct TimeIntervalSet
-     * @brief Represents a collection of time intervals with total duration and interval range in nanoseconds.
+     * @struct TimeIntervalMetadata
+     * @brief Stores metadata related to time intervals.
      *
-     * This structure stores multiple time intervals and calculates
-     * the total duration of all intervals combined.
+     * This structure contains global parameters that define the interval settings,
+     * including the total number of intervals, the first and last timestamps in the dataset,
+     * and the defined length of each interval.
+     */
+    struct TimeIntervalMetadata
+    {
+        uint64_t intervalsValue{0}; // total number of intervals.
+        uint64_t globalStartTimestampNs{0}; // timestamp of the first record in the file.
+        uint64_t globalEndTimestampNs{0}; // timestamp of the last record in the file.
+        uint64_t intervalLengthNs{0}; // defined length of each interval.
+    };
+
+    /**
+     * @struct TimeIntervalSet
+     * @brief Represents a set of time intervals with global time boundaries in nanoseconds.
+     *
+     * This structure defines a collection of time intervals, calculated based on
+     * a specified interval length. It also stores the global start and end timestamps
+     * of the dataset.
      */
     struct TimeIntervalSet
     {
-        std::vector<Interval> timeIntervals;
-        uint64_t totalDurationNs{0};
-        uint64_t intervalRangeNs{0};
+        std::vector<TimeInterval> timeIntervals;
+        TimeIntervalMetadata timeIntervalMetadata;
     };
 
     /**
