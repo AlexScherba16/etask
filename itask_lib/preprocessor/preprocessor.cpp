@@ -2,6 +2,8 @@
 #include "utils/misc/misc.h"
 
 #include <nlohmann/json.hpp>
+#include <filesystem>
+#include <sstream>
 #include <fstream>
 
 using namespace itask::utils::types;
@@ -11,7 +13,7 @@ using namespace nlohmann;
 namespace itask::preprocessor
 {
     Preprocessor::Preprocessor(std::string filePath, const uint16_t threadCount, const uint64_t intervalRangeNanoSec) :
-        filePath_(std::move(filePath)), threadCount_(threadCount), intervalRangeNanoSec_(intervalRangeNanoSec)
+        filePath_(std::move(filePath)), threadCount_(threadCount), intervalLengthNs_(intervalRangeNanoSec)
     {
         if (filePath_.empty())
         {
@@ -23,28 +25,33 @@ namespace itask::preprocessor
             throw std::invalid_argument("Thread count must be positive");
         }
 
-        if (intervalRangeNanoSec_ == 0)
+        if (intervalLengthNs_ == 0)
         {
             throw std::invalid_argument("Interval range must be positive");
+        }
+
+        fileSize_ = std::filesystem::file_size(filePath_);
+        if (fileSize_ == 0)
+        {
+            throw std::invalid_argument("File size must be positive");
         }
     }
 
     PreprocessedData Preprocessor::getPreprocessedData()
     {
         std::ifstream preprocFile(filePath_);
-        Defer deferClose(std::move([&preprocFile](){preprocFile.close();}));
-
         if (!preprocFile.is_open())
         {
             throw std::runtime_error("Could not open preprocessing file: " + filePath_);
         }
+        Defer deferClose(std::move([&preprocFile](){preprocFile.close();}));
 
-        auto timeIntervals{getTimeIntervals_(preprocFile)};
+        auto timeIntervals{getTimeIntervalSet_(preprocFile)};
         auto fileSegments{getFileSegments_(preprocFile)};
         return PreprocessedData{std::move(fileSegments), std::move(timeIntervals)};
     }
 
-    std::vector<TimeInterval> Preprocessor::getTimeIntervals_(std::ifstream& file) const
+    TimeIntervalSet Preprocessor::getTimeIntervalSet_(std::ifstream& file) const
     {
         file.seekg(0, std::ios::beg);
 
@@ -86,10 +93,10 @@ namespace itask::preprocessor
         // timestamps was stored, ready to parse intervals.
         // calculate value of intervals
         uint64_t totalDuration{lastTimestamp - firstTimestamp};
-        uint64_t intervalsValue{totalDuration / intervalRangeNanoSec_};
+        uint64_t intervalsValue{totalDuration / intervalLengthNs_};
 
         // check remaining fraction of interval.
-        if (totalDuration % intervalRangeNanoSec_)
+        if (totalDuration % intervalLengthNs_)
         {
             // we add one more interval to ensure all data is covered.
             intervalsValue++;
@@ -100,20 +107,32 @@ namespace itask::preprocessor
         intervals.reserve(intervalsValue);
         for (int i = 0; i < intervalsValue; ++i)
         {
-            uint64_t startPoint{firstTimestamp + i * intervalRangeNanoSec_};
-            uint64_t endPoint{startPoint + intervalRangeNanoSec_};
+            uint64_t startPoint{firstTimestamp + i * intervalLengthNs_};
+            uint64_t endPoint{startPoint + intervalLengthNs_};
             TimeInterval tmp{startPoint, endPoint};
             intervals.emplace_back(std::move(tmp));
         }
-        return intervals;
+
+        // collect metadata
+        TimeIntervalMetadata metadata;
+        metadata.intervalsValue = intervalsValue;
+        metadata.globalStartTimestampNs = firstTimestamp;
+        metadata.globalEndTimestampNs = lastTimestamp;
+        metadata.intervalLengthNs = intervalLengthNs_;
+
+        return {std::move(intervals), std::move(metadata)};
     }
 
     std::vector<FileSegment> Preprocessor::getFileSegments_(std::ifstream& file) const
     {
-        // set read pointer to end of file and store file size
-        file.seekg(0, std::ios::end);
-        size_t fileSize = file.tellg();
-        size_t chunkSize = fileSize / threadCount_;
+        size_t chunkSize = fileSize_ / threadCount_;
+        if (chunkSize == 0)
+        {
+            std::stringstream ss;
+            ss << "Chunk size must be positive, file size : " << fileSize_ << " threads : " << threadCount_
+            << ", please reduce threads value";
+            throw std::runtime_error(std::move(ss.str()));
+        }
 
         std::vector<FileSegment> fileSegments;
         fileSegments.reserve(threadCount_);
@@ -121,23 +140,23 @@ namespace itask::preprocessor
         for (int i = 0; i < threadCount_; ++i)
         {
             size_t startOffset = i * chunkSize;
-            size_t endOffset = (i == threadCount_ - 1) ? fileSize : (startOffset + chunkSize);
+            size_t endOffset = (i == threadCount_ - 1) ? fileSize_ : (startOffset + chunkSize);
 
             // move startOffset forward until reach '\n'
             if (startOffset > 0)
             {
-                file.seekg(startOffset);
+                file.seekg(startOffset, std::ios::beg);
                 char c;
-                while (file.get(c) && c != '\n' && file.tellg() < fileSize);
+                while (file.get(c) && c != '\n' && file.tellg() < fileSize_);
                 startOffset = file.tellg();
             }
 
             // move endOffset forward until reach '\n'
-            if (endOffset < fileSize)
+            if (endOffset < fileSize_)
             {
-                file.seekg(endOffset);
+                file.seekg(endOffset, std::ios::beg);
                 char c;
-                while (file.get(c) && c != '\n' && file.tellg() < fileSize);
+                while (file.get(c) && c != '\n' && file.tellg() < fileSize_);
                 endOffset = file.tellg();
             }
 
