@@ -6,12 +6,12 @@
 #include <sstream>
 #include <fstream>
 
-using namespace itask::utils::types;
-using namespace itask::utils::misc;
-using namespace nlohmann;
-
 namespace itask::preprocessor
 {
+    using namespace itask::utils::types;
+    using namespace itask::utils::misc;
+    using namespace nlohmann;
+
     Preprocessor::Preprocessor(std::string filePath, const uint16_t threadCount, const uint64_t intervalRangeNanoSec) :
         filePath_(std::move(filePath)), threadCount_(threadCount), intervalLengthNs_(intervalRangeNanoSec)
     {
@@ -44,7 +44,7 @@ namespace itask::preprocessor
         {
             throw std::runtime_error("Could not open preprocessing file: " + filePath_);
         }
-        Defer deferClose(std::move([&preprocFile](){preprocFile.close();}));
+        Defer deferClose(std::move([&preprocFile]() { preprocFile.close(); }));
 
         auto timeIntervals{getTimeIntervalSet_(preprocFile)};
         auto fileSegments{getFileSegments_(preprocFile)};
@@ -130,7 +130,7 @@ namespace itask::preprocessor
         {
             std::stringstream ss;
             ss << "Chunk size must be positive, file size : " << fileSize_ << " threads : " << threadCount_
-            << ", please reduce threads value";
+                << ", please reduce threads value";
             throw std::runtime_error(std::move(ss.str()));
         }
 
@@ -160,7 +160,7 @@ namespace itask::preprocessor
                 endOffset = file.tellg();
             }
 
-            FileSegment tmp {startOffset, endOffset};
+            FileSegment tmp{startOffset, endOffset};
             fileSegments.emplace_back(std::move(tmp));
         }
         return fileSegments;

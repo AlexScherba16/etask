@@ -6,6 +6,7 @@ add_executable(test test_main.cpp
         itask_lib_test/cli_test/cli_test.cpp
         itask_lib_test/preprocessor_test/preprocessor_test.cpp
         itask_lib_test/mapper_test/mapper_test.cpp
+        itask_lib_test/reducer_test/reducer_test.cpp
 )
 
 target_include_directories(test PRIVATE ${CMAKE_SOURCE_DIR}/itask_lib)

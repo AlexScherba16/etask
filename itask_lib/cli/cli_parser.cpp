@@ -2,10 +2,10 @@
 
 #include <cxxopts.hpp>
 
-using namespace itask::utils::types;
-
 namespace itask::cli_parser
 {
+    using namespace itask::utils::types;
+
     CliParser::CliParser(std::string appName, std::string appDescription) :
         appName_(std::move(appName)), appDescription_(std::move(appDescription))
     {

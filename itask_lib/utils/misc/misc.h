@@ -1,5 +1,6 @@
 #ifndef MISC_H
 #define MISC_H
+
 #include <functional>
 
 namespace itask::utils::misc
@@ -8,7 +9,7 @@ namespace itask::utils::misc
      * @class Defer
      * @brief Utility class for executing a function upon destruction.
      *
-     * The `Defer` class ensures that a given function is executed when
+     * The Defer class ensures that a given function is executed when
      * an instance of the class goes out of scope. Thanks to Golang for
      * naming.
      */

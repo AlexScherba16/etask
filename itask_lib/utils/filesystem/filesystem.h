@@ -10,7 +10,7 @@ namespace itask::util::filesystem
      * @class TmpJsonFile
      * @brief A temporary file that stores JSON objects.
      *
-     * This class creates a temporary file in `/tmp/`, writes the provided JSON objects to it,
+     * This class creates a temporary file in /tmp/, writes the provided JSON objects to it,
      * and automatically deletes the file upon destruction.
      */
     class TmpJsonFile
@@ -19,7 +19,7 @@ namespace itask::util::filesystem
         /**
          * @brief Creates a temporary file and writes JSON objects to it.
          *
-         * Generates a unique temporary file in `/tmp/` using `mkstemp`, writes each JSON object
+         * Generates a unique temporary file in /tmp/ using mkstemp, writes each JSON object
          * to a new line in the file, and closes it.
          *
          * @param jsonObjects A vector of JSON strings to be written to the temporary file.
@@ -47,7 +47,7 @@ namespace itask::util::filesystem
             }
             outFile_.close();
 
-            fileSize_= std::filesystem::file_size(path_);
+            fileSize_ = std::filesystem::file_size(path_);
         }
 
         /**
@@ -86,7 +86,7 @@ namespace itask::util::filesystem
      * @class TmpEmptyFile
      * @brief A temporary empty file.
      *
-     * This class creates an empty temporary file in `/tmp/`, which can be used as a placeholder.
+     * This class creates an empty temporary file in /tmp/, which can be used as a placeholder.
      * The file is automatically deleted upon destruction.
      */
     class TmpEmptyFile
@@ -95,7 +95,7 @@ namespace itask::util::filesystem
         /**
          * @brief Creates an empty temporary file.
          *
-         * Generates a unique temporary file in `/tmp/` using `mkstemp`, opens it for writing,
+         * Generates a unique temporary file in /tmp/ using mkstemp, opens it for writing,
          * and then immediately closes it.
          *
          * @throws If the temporary file cannot be created or opened.

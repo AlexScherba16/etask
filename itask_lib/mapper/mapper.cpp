@@ -5,12 +5,12 @@
 #include <fstream>
 #include <iostream>
 
-using namespace itask::utils::types;
-using namespace itask::utils::misc;
-using namespace nlohmann;
-
 namespace itask::mapper
 {
+    using namespace itask::utils::types;
+    using namespace itask::utils::misc;
+    using namespace nlohmann;
+
     Mapper::Mapper(std::string filePath, FileSegment segment, const TimeIntervalSet& timeSet,
                    QuoteChannelsMap& quotesChannelsMap,
                    std::latch& latch) :
@@ -90,7 +90,8 @@ namespace itask::mapper
         {
             try
             {
-                auto json = nlohmann::json::parse(line);
+                auto json = nlohmann::json::parse(std::string_view(line));
+                // auto json = nlohmann::json::parse(line);
 
                 // minor processing, refer to Quote struct description
                 Quote quote{

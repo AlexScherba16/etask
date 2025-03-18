@@ -6,20 +6,20 @@
 #include <fstream>
 #include <latch>
 
-using namespace itask::utils::types;
-
 namespace itask::mapper
 {
+    using namespace itask::utils::types;
+
     /**
      * @class Mapper
      * @brief Parses file segment and Quotes structures to channel.
      *
-     * The `Mapper` class is responsible for:
+     * The Mapper class is responsible for:
      * - Parsing a specific segment of a file.
-     * - Performing minimal preprocessing (refer to 'Quote' structure for details in 'itask/itask_lib/utils/types/types.h').
-     * - Sending the parsed `Quote` objects to the appropriate channel.
+     * - Performing minimal preprocessing (refer to Quote structure for details in 'itask/itask_lib/utils/types/types.h').
+     * - Sending the parsed Quote objects to the appropriate channel.
      *
-     * This class is designed to operate as a callable (`operator()`), making it
+     * This class is designed to operate as a callable (operator()), making it
      * suitable for execution in a separate thread.
      *
      * @note: only movable
@@ -29,6 +29,8 @@ namespace itask::mapper
     public:
         Mapper(const Mapper&) = delete;
         Mapper& operator=(const Mapper&) = delete;
+
+        ~Mapper() = default;
 
         /**
          * @brief Constructs a Mapper instance.
@@ -43,10 +45,10 @@ namespace itask::mapper
          * file or segment is invalid and interval range is zero.
          *
          * @note ❗❗❗IMPORTANT❗❗❗ It is SUPER CRUCIAL to ensure that the referenced objects
-         * (`QuoteChannelsMap` and `std::latch`) remain valid throughout the lifetime of
-         * this `Mapper` instance. Dangling references will lead to undefined behavior.
+         * (QuoteChannelsMap and std::latch) remain valid throughout the lifetime of
+         * this Mapper instance. Dangling references will lead to undefined behavior.
          *
-         * References are used instead of `shared_ptr` to avoid unnecessary pointer dereferencing overhead.
+         * References are used instead of shared_ptr to avoid unnecessary pointer dereferencing overhead.
          *
          */
         Mapper(std::string filePath, FileSegment segment, const TimeIntervalSet& timeSet,
@@ -72,7 +74,7 @@ namespace itask::mapper
          * This function performs:
          * - File parsing within the assigned segment.
          * - Minor preprocessing of the extracted quotes.
-         * - Routing of processed `Quote` objects into the appropriate channels.
+         * - Routing of processed Quote objects into the appropriate channels.
          */
         void operator()();
 

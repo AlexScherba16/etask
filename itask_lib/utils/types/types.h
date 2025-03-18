@@ -140,7 +140,7 @@ namespace itask::utils::types
      * @brief A thread-safe queue for transmitting Quote data.
      *
      * This queue allows safe communication between producer and consumer threads
-     * using `std::optional<Quote>`, where `std::nullopt` is using to send
+     * using std::optional<Quote>, where std::nullopt is using to send
      * end-of-stream signal, similar to Golang empty struct transition.
      */
     using QuoteChannel = moodycamel::ConcurrentQueue<std::optional<Quote>>;
@@ -148,11 +148,43 @@ namespace itask::utils::types
     /**
      * @brief A collection of quote channels for parallel data processing.
      *
-     * This structure represents multiple independent `QuoteChannel` instances,
+     * This structure represents multiple independent QuoteChannel instances,
      * using to send Quote messages across different consumers.
      * vector is chosen to avoid hash calculations like in classical mapping containers.
      */
     using QuoteChannelsMap = std::vector<QuoteChannel>;
+
+    /**
+     * @struct IntervalStatistics
+     * @brief Stores statistical data for a specific time interval.
+     *
+     * This structure holds aggregated bid and ask statistics for a given time interval.
+     * It includes maximum, minimum, average, median, and total volume values for both
+     * bid and ask prices.
+     */
+    struct IntervalStatistics
+    {
+        TimeInterval timeInterval{};
+        double askMax{0};
+        double askMin{0};
+        double askAverage{0};
+        double askMedian{0};
+        double askVolume{0};
+
+        double bidMax{0};
+        double bidMin{0};
+        double bidAverage{0};
+        double bidMedian{0};
+        double bidVolume{0};
+    };
+
+    /**
+     * @brief A collection of aggregated statistics across multiple intervals.
+     *
+     * This type represents a series of IntervalStatistics, allowing for
+     * statistical analysis over time intervals.
+     */
+    using AggregatedStatistics = std::vector<IntervalStatistics>;
 
 }
 
