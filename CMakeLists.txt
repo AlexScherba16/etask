@@ -8,6 +8,7 @@ find_package(cxxopts REQUIRED)
 find_package(GTest REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(concurrentqueue REQUIRED)
+find_package(asio REQUIRED)
 
 add_subdirectory(itask_lib)
 add_subdirectory(test)

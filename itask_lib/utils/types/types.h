@@ -140,7 +140,7 @@ namespace itask::utils::types
      * @brief A thread-safe queue for transmitting Quote data.
      *
      * This queue allows safe communication between producer and consumer threads
-     * using `std::optional<Quote>`, where `std::nullopt` is using to send
+     * using std::optional<Quote>, where std::nullopt is using to send
      * end-of-stream signal, similar to Golang empty struct transition.
      */
     using QuoteChannel = moodycamel::ConcurrentQueue<std::optional<Quote>>;
@@ -148,7 +148,7 @@ namespace itask::utils::types
     /**
      * @brief A collection of quote channels for parallel data processing.
      *
-     * This structure represents multiple independent `QuoteChannel` instances,
+     * This structure represents multiple independent QuoteChannel instances,
      * using to send Quote messages across different consumers.
      * vector is chosen to avoid hash calculations like in classical mapping containers.
      */

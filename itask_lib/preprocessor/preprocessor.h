@@ -5,10 +5,10 @@
 
 #include<string>
 
-using namespace itask::utils::types;
-
 namespace itask::preprocessor
 {
+    using namespace itask::utils::types;
+
     /**
      * @class Preprocessor
      * @brief Prepares file partitions and time intervals for processing.
