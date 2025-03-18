@@ -154,6 +154,38 @@ namespace itask::utils::types
      */
     using QuoteChannelsMap = std::vector<QuoteChannel>;
 
+    /**
+     * @struct IntervalStatistics
+     * @brief Stores statistical data for a specific time interval.
+     *
+     * This structure holds aggregated bid and ask statistics for a given time interval.
+     * It includes maximum, minimum, average, median, and total volume values for both
+     * bid and ask prices.
+     */
+    struct IntervalStatistics
+    {
+        TimeInterval timeInterval{};
+        double askMax{0};
+        double askMin{0};
+        double askAverage{0};
+        double askMedian{0};
+        double askVolume{0};
+
+        double bidMax{0};
+        double bidMin{0};
+        double bidAverage{0};
+        double bidMedian{0};
+        double bidVolume{0};
+    };
+
+    /**
+     * @brief A collection of aggregated statistics across multiple intervals.
+     *
+     * This type represents a series of IntervalStatistics, allowing for
+     * statistical analysis over time intervals.
+     */
+    using AggregatedStatistics = std::vector<IntervalStatistics>;
+
 }
 
 #endif //TYPES_H
