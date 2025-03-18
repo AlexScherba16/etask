@@ -2,3 +2,11 @@
 .idea/
 
 cmake-build-debug/
+
+cmake-build-debug-coverage/
+
+.DS_Store
+
+cmake-build-release/
+
+_build/
